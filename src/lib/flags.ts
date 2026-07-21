@@ -12,15 +12,23 @@ export const UI_MODO_TESTE =
   import.meta.env.DEV && import.meta.env.VITE_PLAYER_VISUAL === '1'
 
 /**
- * DESIGN_PREVIEW (dev-only): bypass de autenticação para trabalho de
- * layout/design system sem Supabase configurado. Injeta uma sessão fake com o
- * papel indicado em VITE_DESIGN_PREVIEW ('coach' | 'aluno'), permitindo abrir
- * as áreas internas direto. Gateado por import.meta.env.DEV — em build de
- * produção fica sempre nulo, sem qualquer efeito. O valor vem do .env, que é
- * gitignored, então o bypass nunca entra no repositório.
+ * Build de demonstração (Vercel): habilita o DESIGN_PREVIEW também num build
+ * de produção. Só liga quando VITE_DEMO === '1' é passado explicitamente no
+ * ambiente do build. Um build de produção REAL (sem essa variável) mantém
+ * tudo desligado — o bypass nunca vaza para o app de verdade.
+ */
+const DEMO_BUILD = import.meta.env.VITE_DEMO === '1'
+
+/**
+ * DESIGN_PREVIEW: bypass de autenticação para trabalhar o layout/design
+ * system sem Supabase configurado. Injeta uma sessão fake com o papel indicado
+ * em VITE_DESIGN_PREVIEW ('coach' | 'aluno'), abrindo as áreas internas direto.
+ *
+ * Ativo em DEV (trabalho local) OU num build de demonstração (VITE_DEMO=1).
+ * Em produção real fica sempre nulo, sem qualquer efeito.
  */
 export const DESIGN_PREVIEW_ROLE: 'coach' | 'aluno' | null =
-  import.meta.env.DEV &&
+  (import.meta.env.DEV || DEMO_BUILD) &&
   (import.meta.env.VITE_DESIGN_PREVIEW === 'coach' ||
     import.meta.env.VITE_DESIGN_PREVIEW === 'aluno')
     ? import.meta.env.VITE_DESIGN_PREVIEW

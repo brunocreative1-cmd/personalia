@@ -472,7 +472,7 @@ function resolveGet(resource: string, params: URLSearchParams): unknown {
  */
 export async function mockPgRequest<T>(
   path: string,
-  init: { method?: string; body?: string } = {}
+  init: { method?: string; body?: BodyInit | null } = {}
 ): Promise<T> {
   const [resource, qs = ''] = path.split('?')
   const params = new URLSearchParams(qs)
@@ -485,10 +485,10 @@ export async function mockPgRequest<T>(
     return resolveGet(resource, params) as T
   }
 
-  // escrita: ecoa representação mínima
+  // escrita: ecoa representação mínima (o corpo do app é sempre JSON string)
   let body: Record<string, unknown> = {}
   try {
-    body = init.body ? (JSON.parse(init.body) as Record<string, unknown>) : {}
+    body = typeof init.body === 'string' ? (JSON.parse(init.body) as Record<string, unknown>) : {}
   } catch {
     body = {}
   }
