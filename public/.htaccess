@@ -1,0 +1,20 @@
+# SPA fallback — rotas do React Router voltam para o index.html
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+
+# Cache: a casca (index.html/manifest) sempre revalida no servidor; js/css têm
+# hash do Vite no nome (conteúdo novo = nome novo), então podem ser imutáveis.
+# Sem isso o celular segura o index.html antigo e serve o app pré-deploy inteiro
+# do cache — foi o que escondeu o timer da Release 1.1.
+<IfModule mod_headers.c>
+  <FilesMatch "^(index\.html|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>

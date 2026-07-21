@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #F0EDE6;
+  --color-ink: #252320;
+  --color-terracotta: #C4623A;
+  --color-sage: #4A6B52;
+
+  /* Tema dark do app do aluno (estudo de design). O coach segue no claro. */
+  --color-night: #0F0F0F;
+  --color-carbon: #1A1A1A;
+  --color-slate: #242424;
+  --color-steel: #2E2E2E;
+  --color-flame: #FF5B22;
+
+  --font-display: "Poppins", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Poppins nos títulos: peso 700 fixo e leve aperto — a Poppins é geométrica
+   e larga, então em corpo grande o tracking padrão fica solto. */
+.font-display {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}

@@ -1,0 +1,41 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Env — nunca commitar credenciais
+.env
+.env.*
+.env.deploy
+.env.backup
+!.env.example
+
+# Backups — dumps, manifests e artefatos nunca entram no repo (dados de saúde)
+*.tar.gz.enc
+personalia-*.sql
+personalia-*.manifest.json
+staging-*/
+restore-work-*/
+
+# Configuração local do Claude Code (por máquina, não versionar)
+.claude/settings.local.json
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
