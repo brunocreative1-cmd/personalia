@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchMeuRegistro } from '../../lib/api'
 import type { Aluno } from '../../lib/api'
@@ -16,11 +17,13 @@ import { ErrorBlock } from '../../components/DataState'
 import {
   IconActivity,
   IconBell,
+  IconCalendar,
   IconChat,
   IconChevronRight,
   IconClock,
   IconFlame,
   IconMoon,
+  IconWhatsApp,
 } from '../../components/icons'
 import { formatDateBR, hojeSaoPaulo, parseDateOnly, progressoPrograma } from '../../lib/dates'
 
@@ -327,6 +330,25 @@ function AtividadeRecente({
 
 /** Sessões da semana em cartões roláveis — equivale a "Trending Plans". */
 function SeuTreino({ aluno, programa }: { aluno: Aluno; programa: Programa | null }) {
+  const scroller = useRef<HTMLDivElement>(null)
+  // progresso 0..1 do scroll; visivel = fração do conteúdo à mostra (<1 rola).
+  const [progresso, setProgresso] = useState(0)
+  const [visivel, setVisivel] = useState(1)
+
+  const medir = useCallback(() => {
+    const el = scroller.current
+    if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    setProgresso(max > 0 ? el.scrollLeft / max : 0)
+    setVisivel(el.scrollWidth > 0 ? el.clientWidth / el.scrollWidth : 1)
+  }, [])
+
+  useEffect(() => {
+    medir()
+    window.addEventListener('resize', medir)
+    return () => window.removeEventListener('resize', medir)
+  }, [medir, programa])
+
   if (!programa) {
     return (
       <section className="mt-7">
@@ -368,7 +390,11 @@ function SeuTreino({ aluno, programa }: { aluno: Aluno; programa: Programa | nul
         </div>
       )}
 
-      <div className="-mx-5 mt-3 flex gap-3 overflow-x-auto px-5 pb-1">
+      <div
+        ref={scroller}
+        onScroll={medir}
+        className="no-scrollbar -mx-5 mt-3 flex gap-3 overflow-x-auto px-5"
+      >
         {lista.map((s) => {
           const ehHoje = hoje?.id === s.id
           return (
@@ -410,6 +436,22 @@ function SeuTreino({ aluno, programa }: { aluno: Aluno; programa: Programa | nul
           )
         })}
       </div>
+
+      {/* Indicador de scroll próprio: trilho discreto + preenchimento laranja
+          que reflete a posição. Só aparece quando o conteúdo transborda. */}
+      {visivel < 1 && (
+        <div className="mt-5 flex justify-center" aria-hidden="true">
+          <div className="h-1 w-14 overflow-hidden rounded-full bg-steel">
+            <div
+              className="h-full rounded-full bg-flame"
+              style={{
+                width: `${visivel * 100}%`,
+                marginLeft: `${progresso * (100 - visivel * 100)}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
     </section>
   )
 }
@@ -430,19 +472,13 @@ function CardAnamnese({ anamnese }: { anamnese: Anamnese | null }) {
   return (
     <Link
       to="/aluno/anamnese"
-      className={`mt-3 flex items-center justify-between gap-3 ${CARD} transition-colors hover:bg-slate ${
-        emDia ? '' : 'ring-1 ring-flame/40'
-      }`}
+      className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-flame to-[#c9410f] p-5 transition-opacity hover:opacity-95"
     >
       <div className="min-w-0">
         <p className="font-medium text-white">Minha anamnese</p>
-        <p className="mt-0.5 truncate text-sm text-white/45">{descricao}</p>
+        <p className="mt-0.5 truncate text-sm text-white/80">{descricao}</p>
       </div>
-      <span
-        className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-medium ${
-          emDia ? 'bg-white/10 text-white/70' : 'bg-flame/15 text-flame'
-        }`}
-      >
+      <span className="shrink-0 rounded-full bg-white/20 px-3 py-1 text-[11px] font-medium text-white">
         {emDia ? 'concluída' : consentimentoPendente ? 'confirmar' : 'pendente'}
       </span>
     </Link>
@@ -459,16 +495,58 @@ function CardCheckin({ aluno }: { aluno: Aluno }) {
   const alvo = dia <= 15 ? 15 : 30
   const data = new Date(inicio.getTime() + (alvo - 1) * 86_400_000)
   const faltam = alvo - dia
+  const dataFmt = data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
+  const legenda =
+    faltam === 0
+      ? 'É hoje — combine o horário com seu coach.'
+      : faltam === 1
+        ? 'É amanhã, prepare-se para o encontro.'
+        : 'Faltam poucos dias para nos encontrarmos.'
 
   return (
-    <div className={`mt-3 ${CARD}`}>
-      <p className={ROTULO}>Próximo check-in</p>
-      <p className="mt-1 text-sm text-white">
-        {alvo === 15 ? 'Check-in do meio do ciclo' : 'Check-in final'} —{' '}
-        <span className="font-medium">{data.toLocaleDateString('pt-BR')}</span>
-        {faltam > 0 ? ` (em ${faltam} ${faltam === 1 ? 'dia' : 'dias'})` : ' (hoje!)'}
-      </p>
-      <p className="mt-1 text-xs text-white/40">Combine com seu coach pelo WhatsApp.</p>
+    <div className="mt-3 rounded-3xl bg-white text-ink shadow-sm">
+      {/* topo: texto + contagem, separados por régua vertical */}
+      <div className="flex items-stretch gap-4 px-5 pt-5 pb-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-flame">
+            Próximo check-in
+          </p>
+          <p className="mt-1.5 font-display text-2xl text-ink">
+            {alvo === 15 ? 'Meio do ciclo' : 'Check-in final'}
+          </p>
+          <p className="mt-1.5 text-sm leading-snug text-ink/45">{legenda}</p>
+        </div>
+        <div className="w-px self-stretch bg-ink/10" />
+        <div className="flex w-14 flex-col items-center justify-center text-flame">
+          {faltam > 0 ? (
+            <>
+              <span className="font-display text-4xl leading-none">{faltam}</span>
+              <span className="mt-1 text-sm">{faltam === 1 ? 'dia' : 'dias'}</span>
+            </>
+          ) : (
+            <span className="font-display text-2xl leading-none">hoje</span>
+          )}
+        </div>
+      </div>
+
+      <div className="mx-5 border-t border-ink/10" />
+
+      {/* rodapé: data + WhatsApp, separados por régua vertical */}
+      <div className="flex items-center px-5 py-4">
+        <div className="flex shrink-0 items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-flame/10 text-flame">
+            <IconCalendar className="h-[18px] w-[18px]" />
+          </span>
+          <span className="whitespace-nowrap text-sm font-semibold text-ink">{dataFmt}</span>
+        </div>
+        <div className="mx-3.5 w-px self-stretch bg-ink/10" />
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-flame/10 text-flame">
+            <IconWhatsApp className="h-[19px] w-[19px]" />
+          </span>
+          <span className="text-xs leading-tight text-ink/70">Combine pelo WhatsApp</span>
+        </div>
+      </div>
     </div>
   )
 }

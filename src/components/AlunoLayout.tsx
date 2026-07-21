@@ -38,7 +38,7 @@ export function AlunoLayout() {
     }`
 
   return (
-    <div className={`min-h-screen pb-24 ${dark ? 'bg-night text-white' : 'bg-cream text-ink'}`}>
+    <div className={`aluno-app min-h-screen pb-24 ${dark ? 'bg-night text-white' : 'bg-cream text-ink'}`}>
       <header
         className={`sticky top-0 z-10 border-b backdrop-blur ${
           dark ? 'border-steel bg-night/90' : 'border-ink/10 bg-cream/90'

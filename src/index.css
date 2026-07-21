@@ -24,6 +24,21 @@
   letter-spacing: -0.02em;
 }
 
+/* Área do aluno (estudo de design): títulos em Manrope. O coach permanece
+   com a Poppins do token global --font-display. */
+.aluno-app .font-display {
+  font-family: "Manrope", system-ui, sans-serif;
+}
+
+/* Esconde a scrollbar nativa em carrosséis — o indicador próprio dá o feedback
+   de progresso, sem depender do desenho de scrollbar de cada navegador. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   background-color: var(--color-cream);
   color: var(--color-ink);
