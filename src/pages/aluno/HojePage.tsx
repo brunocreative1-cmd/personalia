@@ -20,6 +20,7 @@ import {
   IconCalendar,
   IconChat,
   IconChevronRight,
+  IconCheckCircle,
   IconClock,
   IconFlame,
   IconMoon,
@@ -397,23 +398,80 @@ function SeuTreino({ aluno, programa }: { aluno: Aluno; programa: Programa | nul
       >
         {lista.map((s) => {
           const ehHoje = hoje?.id === s.id
+          const primeiroExercicio = s.sessao_exercicios[0]?.exercicio
+          const contexto = `${s.titulo} ${s.sessao_exercicios
+            .map((item) => `${item.exercicio.nome} ${item.exercicio.grupo_muscular ?? ''}`)
+            .join(' ')}`
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+          const imagemFallback = /perna|inferior|glute|quadriceps|posterior|core|abdomen/.test(
+            contexto
+          )
+            ? '/images/workouts/inferiores-core.webp'
+            : /superior|peito|costa|ombro|braco|biceps|triceps|supino|remada/.test(contexto)
+              ? '/images/workouts/superiores.webp'
+              : '/images/workouts/full-body.webp'
+          const imagem = primeiroExercicio?.imagem_url || imagemFallback
+          const tituloPartes = s.titulo.match(/^(.+?)\s+[—–-]\s+(.+)$/)
+
           return (
             <div
               key={s.id}
-              className={`relative flex w-64 shrink-0 flex-col justify-between overflow-hidden rounded-2xl p-5 ${
-                ehHoje ? 'bg-gradient-to-br from-flame to-[#c9410f]' : 'bg-carbon'
+              className={`relative flex min-h-[20.5rem] w-60 shrink-0 flex-col overflow-hidden rounded-2xl border bg-[#121212] ${
+                ehHoje
+                  ? 'border-flame/55 shadow-[0_14px_34px_rgba(255,91,34,0.10)]'
+                  : 'border-white/5'
               }`}
             >
-              <div>
+              <div className="relative h-44 shrink-0 overflow-hidden bg-steel">
+                <img
+                  src={imagem}
+                  alt={
+                    primeiroExercicio
+                      ? `Treino com ${primeiroExercicio.nome}`
+                      : `Capa da sessao ${s.titulo}`
+                  }
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+                  loading={ehHoje ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+                <div
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/15 to-black/25"
+                />
+                <span className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/55 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/85 backdrop-blur-sm">
+                  {primeiroExercicio?.grupo_muscular || 'Treino de forca'}
+                </span>
+              </div>
+
+              <div className="flex flex-1 flex-col p-4 pt-3">
+                <div>
                 <p
                   className={`text-[11px] font-medium uppercase tracking-wider ${
-                    ehHoje ? 'text-white/80' : 'text-white/40'
+                    ehHoje ? 'text-flame' : 'text-white/40'
                   }`}
                 >
                   {ehHoje ? 'Treino de hoje' : `Semana ${s.semana}`}
                 </p>
-                <p className="mt-1 font-display text-xl leading-tight text-white">{s.titulo}</p>
-                <p className={`mt-1 text-xs ${ehHoje ? 'text-white/80' : 'text-white/45'}`}>
+                <p className="mt-1 font-display text-lg leading-snug text-white">
+                  {tituloPartes ? (
+                    <>
+                      <span>{tituloPartes[1]}</span>
+                      <span
+                        aria-hidden="true"
+                        className="mx-1.5 inline-block h-1.5 w-1.5 rounded-full bg-flame align-middle"
+                      />
+                      <span>{tituloPartes[2]}</span>
+                    </>
+                  ) : (
+                    s.titulo
+                  )}
+                </p>
+                <p
+                  className={`mt-1.5 text-xs leading-relaxed ${
+                    ehHoje ? 'text-white/80' : 'text-white/45'
+                  }`}
+                >
                   {s.sessao_exercicios.length}{' '}
                   {s.sessao_exercicios.length === 1 ? 'exercício' : 'exercícios'}
                   {s.duracao_estimada_min ? ` · ~${s.duracao_estimada_min} min` : ''}
@@ -423,15 +481,16 @@ function SeuTreino({ aluno, programa }: { aluno: Aluno; programa: Programa | nul
                     Demonstrativo
                   </p>
                 )}
+                </div>
+                <Link
+                  to={`/aluno/treino/sessao/${s.id}`}
+                  className={`mt-4 self-start rounded-full px-5 py-2 text-sm font-semibold transition-opacity hover:opacity-90 ${
+                    ehHoje ? 'bg-flame text-white' : 'bg-white text-night'
+                  }`}
+                >
+                  {demonstrativo ? 'Simular' : 'Iniciar'}
+                </Link>
               </div>
-              <Link
-                to={`/aluno/treino/sessao/${s.id}`}
-                className={`mt-5 self-start rounded-full px-5 py-2 text-sm font-semibold transition-opacity hover:opacity-90 ${
-                  ehHoje ? 'bg-white text-night' : 'bg-flame text-white'
-                }`}
-              >
-                {demonstrativo ? 'Simular' : 'Iniciar'}
-              </Link>
             </div>
           )
         })}
@@ -440,7 +499,7 @@ function SeuTreino({ aluno, programa }: { aluno: Aluno; programa: Programa | nul
       {/* Indicador de scroll próprio: trilho discreto + preenchimento laranja
           que reflete a posição. Só aparece quando o conteúdo transborda. */}
       {visivel < 1 && (
-        <div className="mt-5 flex justify-center" aria-hidden="true">
+        <div className="mt-5 flex justify-end" aria-hidden="true">
           <div className="h-1 w-14 overflow-hidden rounded-full bg-steel">
             <div
               className="h-full rounded-full bg-flame"
@@ -462,7 +521,7 @@ function CardAnamnese({ anamnese }: { anamnese: Anamnese | null }) {
   const emDia = concluida && !consentimentoPendente
 
   const descricao = emDia
-    ? 'Concluída — toque para revisar ou editar'
+    ? 'Concluída - Toque para editar'
     : !anamnese
       ? 'Preencha para seu coach montar seu treino'
       : consentimentoPendente
@@ -478,9 +537,15 @@ function CardAnamnese({ anamnese }: { anamnese: Anamnese | null }) {
         <p className="font-medium text-white">Minha anamnese</p>
         <p className="mt-0.5 truncate text-sm text-white/80">{descricao}</p>
       </div>
-      <span className="shrink-0 rounded-full bg-white/20 px-3 py-1 text-[11px] font-medium text-white">
-        {emDia ? 'concluída' : consentimentoPendente ? 'confirmar' : 'pendente'}
-      </span>
+      {emDia ? (
+        <span className="shrink-0 text-white" aria-label="Concluída">
+          <IconCheckCircle className="h-9 w-9" />
+        </span>
+      ) : (
+        <span className="shrink-0 rounded-full bg-white/20 px-3 py-1 text-[11px] font-medium text-white">
+          {consentimentoPendente ? 'confirmar' : 'pendente'}
+        </span>
+      )}
     </Link>
   )
 }
@@ -533,16 +598,16 @@ function CardCheckin({ aluno }: { aluno: Aluno }) {
 
       {/* rodapé: data + WhatsApp, separados por régua vertical */}
       <div className="flex items-center px-5 py-4">
-        <div className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-flame/10 text-flame">
-            <IconCalendar className="h-[18px] w-[18px]" />
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-flame/10 text-flame">
+            <IconCalendar className="h-4 w-4" />
           </span>
-          <span className="whitespace-nowrap text-sm font-semibold text-ink">{dataFmt}</span>
+          <span className="whitespace-nowrap text-xs font-semibold text-ink">{dataFmt}</span>
         </div>
         <div className="mx-3.5 w-px self-stretch bg-ink/10" />
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-flame/10 text-flame">
-            <IconWhatsApp className="h-[19px] w-[19px]" />
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-flame/10 text-flame">
+            <IconWhatsApp className="h-4 w-4" />
           </span>
           <span className="text-xs leading-tight text-ink/70">Combine pelo WhatsApp</span>
         </div>
@@ -575,9 +640,15 @@ function FichaResumo({ aluno }: { aluno: Aluno }) {
     { rotulo: 'Nível', valor: aluno.nivel ?? 'A definir com seu coach' },
   ]
   return (
-    <div className={`mt-3 grid gap-4 ${CARD}`}>
+    <div className={`relative mt-3 grid gap-4 overflow-hidden ${CARD}`}>
+      <img
+        src="/images/line-fundo.svg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-6 top-[58%] h-[19rem] w-[20rem] max-w-none -translate-y-1/2 object-contain opacity-40"
+      />
       {itens.map((i) => (
-        <div key={i.rotulo}>
+        <div key={i.rotulo} className="relative z-10">
           <p className={ROTULO}>{i.rotulo}</p>
           <p className="mt-1 text-sm text-white">{i.valor}</p>
         </div>
