@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { IconCheckCircle } from './icons'
+import { IconCheckCircle, IconClock } from './icons'
 
 let audioCtx: AudioContext | null = null
 
 /**
- * Deve ser chamada ainda dentro do gesto (tap no ✓) que vai disparar o timer:
- * AudioContext criado fora de interação nasce suspenso e o bipe é bloqueado.
+ * Deve ser chamada ainda dentro do gesto que dispara o timer. Um AudioContext
+ * criado fora de uma interação pode nascer suspenso e ter o bipe bloqueado.
  */
 export function prepararAudio() {
   try {
@@ -45,18 +45,19 @@ function sinalizarFim() {
 }
 
 const btnClass =
-  'h-12 min-w-16 rounded-xl border border-cream/25 px-3 font-medium text-cream transition-colors hover:border-cream/60'
+  'flex h-12 min-w-0 items-center justify-center rounded-xl border border-white/10 bg-slate px-2 text-sm font-semibold text-white/70 transition-colors hover:border-flame/60 hover:text-white'
 
 /**
- * Countdown de descanso entre séries. A contagem deriva de um timestamp-alvo
- * (nunca de setInterval acumulado): ao voltar de outra aba ou ligação, o
- * próximo tick recalcula o restante correto.
+ * Countdown integrado ao card de séries. A contagem deriva de um timestamp-alvo
+ * para permanecer correta quando a aba perde o foco.
  */
 export function TimerDescanso({
   duracaoSeg,
+  proximo,
   onFechar,
 }: {
   duracaoSeg: number
+  proximo?: string
   onFechar: () => void
 }) {
   const [terminaEm, setTerminaEm] = useState(() => Date.now() + duracaoSeg * 1000)
@@ -93,7 +94,7 @@ export function TimerDescanso({
     if (pausado) {
       setPausadoRestanteMs(Math.max(0, pausadoRestanteMs + deltaSeg * 1000))
     } else {
-      setTerminaEm((t) => Math.max(Date.now(), t + deltaSeg * 1000))
+      setTerminaEm((tempo) => Math.max(Date.now(), tempo + deltaSeg * 1000))
       setAgora(Date.now())
     }
   }
@@ -110,57 +111,93 @@ export function TimerDescanso({
 
   const totalSeg = Math.ceil(restanteMs / 1000)
   const mostrador = `${Math.floor(totalSeg / 60)}:${String(totalSeg % 60).padStart(2, '0')}`
+  const progresso = Math.min(1, Math.max(0, restanteMs / Math.max(1, duracaoSeg * 1000)))
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20">
-      <div className="mx-auto max-w-md px-5 pb-4">
-        <div
-          className="rounded-2xl bg-ink p-4 text-center text-cream shadow-xl"
-          role="timer"
-          aria-live="polite"
-        >
-          {acabou ? (
-            <>
-              <p className="flex items-center justify-center gap-2 font-display text-4xl font-semibold">
-                Pode ir! <IconCheckCircle className="h-8 w-8" />
-              </p>
-              <button onClick={onFechar} className={`${btnClass} mt-3 w-full`}>
-                Fechar
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="text-xs font-medium uppercase tracking-wide text-cream/60">
-                Descanso{pausado ? ' · pausado' : ''}
-              </p>
-              <p className="font-display text-6xl font-semibold tabular-nums leading-tight">
-                {mostrador}
-              </p>
-              <div className="mt-3 flex justify-center gap-2">
-                <button onClick={() => ajustar(-15)} className={btnClass} aria-label="Menos 15 segundos">
-                  −15s
-                </button>
-                <button
-                  onClick={pausarOuRetomar}
-                  className={btnClass}
-                  aria-label={pausado ? 'Retomar descanso' : 'Pausar descanso'}
-                >
-                  {pausado ? '▶ Retomar' : '⏸ Pausar'}
-                </button>
-                <button onClick={() => ajustar(15)} className={btnClass} aria-label="Mais 15 segundos">
-                  +15s
-                </button>
-              </div>
-              <button
-                onClick={onFechar}
-                className="mt-2 w-full py-2 text-sm text-cream/60 underline transition-colors hover:text-cream"
-              >
-                Pular descanso
-              </button>
-            </>
-          )}
+    <div
+      className="exercise-rest-reveal flex min-h-[21rem] flex-col justify-center text-center text-white"
+      role="timer"
+      aria-live="polite"
+    >
+      {acabou ? (
+        <div className="flex flex-col items-center">
+          <span className="flex h-20 w-20 items-center justify-center rounded-full bg-flame text-white shadow-[0_0_0_8px_rgba(255,91,34,0.1)]">
+            <IconCheckCircle className="h-10 w-10" />
+          </span>
+          <p className="mt-5 font-display text-2xl">Pode continuar</p>
+          {proximo && <p className="mt-1 text-sm text-white/45">{proximo}</p>}
+          <button
+            type="button"
+            onClick={onFechar}
+            className="mt-6 w-full rounded-xl bg-flame py-3.5 font-semibold text-white transition-opacity hover:opacity-90"
+          >
+            Continuar treino
+          </button>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-flame">
+            <IconClock className="h-4 w-4" />
+            <span>{pausado ? 'Descanso pausado' : 'Recupere o fôlego'}</span>
+          </div>
+
+          <div
+            className="mx-auto mt-4 flex h-40 w-40 items-center justify-center rounded-full p-[6px] shadow-[0_0_36px_rgba(255,91,34,0.08)]"
+            style={{
+              background: `conic-gradient(#FF5B22 ${progresso * 360}deg, #343434 0deg)`,
+            }}
+            aria-label={`${totalSeg} segundos restantes`}
+          >
+            <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-carbon">
+              <span className="font-display text-5xl tabular-nums leading-none">{mostrador}</span>
+              <span className="mt-2 text-[10px] uppercase tracking-[0.14em] text-white/35">
+                {pausado ? 'pausado' : 'restantes'}
+              </span>
+            </div>
+          </div>
+
+          {proximo && (
+            <div className="mx-auto mt-4 rounded-full border border-white/8 bg-slate px-4 py-2 text-xs text-white/55">
+              {proximo}
+            </div>
+          )}
+
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => ajustar(-15)}
+              className={btnClass}
+              aria-label="Menos 15 segundos"
+            >
+              −15s
+            </button>
+            <button
+              type="button"
+              onClick={pausarOuRetomar}
+              className={btnClass}
+              aria-label={pausado ? 'Retomar descanso' : 'Pausar descanso'}
+            >
+              {pausado ? 'Retomar' : 'Pausar'}
+            </button>
+            <button
+              type="button"
+              onClick={() => ajustar(15)}
+              className={btnClass}
+              aria-label="Mais 15 segundos"
+            >
+              +15s
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={onFechar}
+            className="mt-2 w-full py-2 text-sm text-white/40 underline decoration-white/20 underline-offset-4 transition-colors hover:text-white"
+          >
+            Pular descanso
+          </button>
+        </>
+      )}
     </div>
   )
 }
