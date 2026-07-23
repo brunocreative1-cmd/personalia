@@ -39,6 +39,159 @@
   display: none;
 }
 
+/* Ritual de início do exercício: movimento curto, tátil e alinhado ao flame. */
+@keyframes exercise-launch-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes exercise-launch-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 14px 42px rgb(255 91 34 / 0.22);
+  }
+  50% {
+    transform: scale(1.035);
+    box-shadow: 0 18px 54px rgb(255 91 34 / 0.36);
+  }
+}
+
+@keyframes exercise-launch-press {
+  0% {
+    transform: scale(1);
+  }
+  38% {
+    transform: scale(0.9);
+  }
+  72% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes exercise-launch-wave {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.62);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+@keyframes exercise-series-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes exercise-active-series-pulse {
+  0% {
+    opacity: 0.78;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.85);
+  }
+}
+
+@keyframes exercise-demo-media-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.965);
+  }
+  68% {
+    opacity: 1;
+    transform: translateY(1px) scale(1.008);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes exercise-rest-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  68% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.003);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.exercise-launch-orbit {
+  animation: exercise-launch-orbit 8s linear infinite;
+}
+
+.exercise-launch-trigger {
+  animation: exercise-launch-breathe 2.8s ease-in-out infinite;
+}
+
+.exercise-launch-trigger.is-starting {
+  animation: exercise-launch-press 680ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.exercise-launch-wave {
+  animation: exercise-launch-wave 700ms ease-out both;
+}
+
+.exercise-launch-wave-delay {
+  animation-delay: 140ms;
+}
+
+.exercise-series-reveal {
+  animation: exercise-series-reveal 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.exercise-active-series-pulse::after {
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  content: "";
+  border: 1.5px solid var(--color-flame);
+  border-radius: 9999px;
+  pointer-events: none;
+  animation: exercise-active-series-pulse 1.8s cubic-bezier(0.2, 0.7, 0.2, 1) infinite;
+}
+
+.exercise-demo-media {
+  animation: exercise-demo-media-reveal 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.exercise-rest-reveal {
+  animation: exercise-rest-reveal 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exercise-launch-orbit,
+  .exercise-launch-trigger,
+  .exercise-launch-trigger.is-starting,
+  .exercise-launch-wave,
+  .exercise-series-reveal,
+  .exercise-active-series-pulse::after,
+  .exercise-demo-media,
+  .exercise-rest-reveal {
+    animation: none;
+  }
+}
+
 body {
   background-color: var(--color-cream);
   color: var(--color-ink);

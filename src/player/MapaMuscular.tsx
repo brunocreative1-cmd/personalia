@@ -1,7 +1,7 @@
 /**
  * Mapa muscular estilizado (frente/costas) do player do aluno.
- * Silhueta construída por regiões nomeadas: primário = terracota cheio,
- * secundário = terracota translúcido, demais = neutro.
+ * Silhueta construída por regiões nomeadas: primário = flame cheio,
+ * secundário = flame translúcido, demais = neutro.
  * Os 16 MusculoId espelham 1:1 os slugs de public.musculos.
  */
 
@@ -62,8 +62,8 @@ export const MUSCULO_VISTA: Record<MusculoId, 'frente' | 'costas'> = {
   panturrilha: 'costas',
 }
 
-const COR_PRIMARIO = '#C4623A'
-const COR_NEUTRO = '#252320'
+const COR_PRIMARIO = '#FF5B22'
+const COR_NEUTRO = '#FFFFFF'
 
 type Props = {
   vista: 'frente' | 'costas'

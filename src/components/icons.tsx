@@ -121,6 +121,31 @@ export function IconChevronRight({ className }: { className?: string }) {
   )
 }
 
+/** Play — início intencional de exercício/sessão. */
+export function IconPlay({ className }: { className?: string }) {
+  return (
+    <Icon className={className}>
+      <path d="m8 5 11 7-11 7z" />
+    </Icon>
+  )
+}
+
+/** Play preenchido — usado em chamadas principais sobre fundos de alto contraste. */
+export function IconPlayFilled({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.29-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
+    </svg>
+  )
+}
+
 /** Chama — intensidade/esforço. */
 export function IconFlame({ className }: { className?: string }) {
   return (
